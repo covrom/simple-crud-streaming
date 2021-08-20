@@ -1,0 +1,28 @@
+package handler
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/covrom/simple-crud-streaming/app/repos/user"
+	"github.com/covrom/simple-crud-streaming/db/mem/usermemstore"
+)
+
+func TestRouter_CreateUser(t *testing.T) {
+	ust := usermemstore.NewUsers()
+	us := user.NewUsers(ust)
+	rt := NewRouter(us)
+	h := rt.AuthMiddleware(http.HandlerFunc(rt.CreateUser)).ServeHTTP
+
+	w := &httptest.ResponseRecorder{}
+	r := httptest.NewRequest("POST", "/create", strings.NewReader(`{"name":"user123"}`))
+	r.SetBasicAuth("admin", "admin")
+	h(w, r)
+	if w.Code != http.StatusCreated {
+		t.Error("status wrong")
+	}
+
+	// (&http.Client{}).Get(httptest.NewServer(nil).URL)
+}
